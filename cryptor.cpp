@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <openssl/rand.h>
 
 class Cryptor
@@ -17,7 +18,7 @@ public:
     {
         for (long i = 0; i < size; i++)
         {
-            data[i] ^= key[i];
+            data[i] ^= key[i % 4096];
         }
     }
 
@@ -28,10 +29,10 @@ public:
         out.close();
     }
 
-    void savedata(const char* filename, unsigned char* data, long size)
+    void savedata(const char* filename, const char* data, long size)
     {
         std::ofstream out(filename, std::ios::binary);
-        out.write(reinterpret_cast<char*>(data), size);
+        out.write(data, size);
         out.close();
     }
 
@@ -39,49 +40,77 @@ public:
     {
         for (long i = 0; i < size; i++)
         {
-            data[i] ^= key[i];
+            data[i] ^= key[i % 4096];
         }
     }
 
-    void savedecrypteddata(const char* filename, unsigned char* data, long size)
+    void savedecrypteddata(const char* filename, const char* data, long size)
     {
         std::ofstream out(filename, std::ios::binary);
-        out.write(reinterpret_cast<char*>(data), size);
+        out.write(data, size);
         out.close();
     }
 };
 
-int main()
+int main(int argc, char *argv[]) // ./bin/cryptor text.txt - compile
 {
-    FILE* f = fopen("text.txt", "rb");
-    FILE* k = fopen("key.bin", "wb");
-    FILE* d = fopen("data.bin", "wb");
-    FILE* dc = fopen("decrypted.txt", "wb");
+    std::string filename;
+    if(argc < 2)
+    {
+        std::cout << "Вы не указали путь к файлу\n";
+        return 1;
+    }
 
-    if (!f || !k || !d || !dc)
+    filename = argv[1];
+
+    std::ifstream f(filename, std::ios::binary);
+    if (!f)
     {
         std::cout << "Ошибка открытия файла\n";
         return 1;
     }
 
-    fseek(f, 0, SEEK_END);
-    long size = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    std::ofstream k("key.bin", std::ios::binary);
+    if (!k)
+    {
+        std::cout << "Ошибка открытия файла\n";
+        return 1;
+    }
 
-    unsigned char* data = new unsigned char[size];
-    fread(data, 1, size, f);
+    std::ofstream d("data.bin", std::ios::binary);
+    if (!d)
+    {
+        std::cout << "Ошибка открытия файла\n";
+        return 1;
+    }
+
+    std::ofstream dc("decrypted.txt");
+    if (!dc)
+    {
+        std::cout << "Ошибка открытия файла\n";
+        return 1;
+    }
+
+    std::string data;
+    std::string line;
+
+    while(getline(f, line))
+    {
+        data += line;
+        data += "\n";
+    }
+
+    long size = data.length();
+    char* row_data = &data[0];
 
     Cryptor cryptor;
-    cryptor.encrypt(data, size);
-    cryptor.savekey("key.bin", size);
-    cryptor.savedata("data.bin", data, size);
-    cryptor.decrypt(data, size);
-    cryptor.savedecrypteddata("decrypted.txt", data, size);
 
-    fclose(k);
-    fclose(d);
-    fclose(f);
-    fclose(dc);
-    delete[] data;
+    cryptor.encrypt(reinterpret_cast<unsigned char*>(row_data), size);
+    cryptor.savekey("key.bin", size);
+    cryptor.savedata("data.bin", data.c_str(), size);
+
+    cryptor.decrypt(reinterpret_cast<unsigned char*>(row_data), size);
+    cryptor.savedecrypteddata("decrypted.txt", data.c_str(), size);
+
     return 0;
 }
