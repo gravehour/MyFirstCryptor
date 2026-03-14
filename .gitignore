@@ -1,1 +1,4 @@
 bin/cryptor
+bin/data.bin
+bin/key.bin
+decrypted.txt
