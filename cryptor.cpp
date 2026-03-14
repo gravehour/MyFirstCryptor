@@ -52,7 +52,7 @@ public:
     }
 };
 
-int main(int argc, char *argv[]) // ./bin/cryptor text.txt - compile
+int main(int argc, char *argv[])
 {
     std::string filename;
     if(argc < 2)
