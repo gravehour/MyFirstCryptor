@@ -1,4 +1,3 @@
-bin/cryptor
-bin/data.bin
-bin/key.bin
+bin/
+*.bin
 decrypted.txt
