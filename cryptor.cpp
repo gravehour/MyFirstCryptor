@@ -3,23 +3,26 @@
 #include <string>
 #include <openssl/rand.h>
 
+#undef BUFSIZ
+#define BUFSIZ 4096
+
 class Cryptor
 {
 private:
-    unsigned char key[4096];
+    unsigned char key[BUFSIZ];
 
 public:
     Cryptor()
     {
-        RAND_bytes(key, 4096);
+        RAND_bytes(key, BUFSIZ);
     }
 
     void encrypt(unsigned char* data, long size)
     {
         for (long i = 0; i < size; i++)
-        {
-            data[i] ^= key[i % 4096];
-        }
+        
+            data[i] ^= key[i % BUFSIZ];
+        
     }
 
     void savekey(const char* filename, long size)
@@ -39,9 +42,9 @@ public:
     void decrypt(unsigned char* data, long size)
     {
         for (long i = 0; i < size; i++)
-        {
-            data[i] ^= key[i % 4096];
-        }
+        
+            data[i] ^= key[i % BUFSIZ];
+        
     }
 
     void savedecrypteddata(const char* filename, const char* data, long size)
@@ -96,7 +99,7 @@ int main(int argc, char *argv[])
 
     while(getline(f, line))
     {
-        data += line;
+        data += line;   
         data += "\n";
     }
 
