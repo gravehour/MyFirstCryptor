@@ -7,6 +7,7 @@ SRC = cryptor.cpp
 all: $(TARGET)
 
 $(TARGET): $(SRC)
+	mkdir -p $(dir $(TARGET))
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC) $(LDFLAGS)
 
 clean:
